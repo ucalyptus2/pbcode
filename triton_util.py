@@ -72,10 +72,10 @@ def triton_metadata_http(endpoint, model_name, headers, model_version=""):
 
 
 async def triton_metadata_http_async(endpoint, model_name, headers, model_version=""):
-    async with aio_httpclient.InferenceServerClient(  # pylint: disable=unexpected-keyword-arg
+    async with aio_httpclient.InferenceServerClient(
         endpoint,
         ssl=True,
-        ssl_context=ssl.create_default_context(),
+        ssl_context_factory=ssl.create_default_context,
     ) as triton_client:
         return await triton_client.get_model_metadata(model_name, model_version=model_version, headers=headers)
 
@@ -95,7 +95,7 @@ def triton_predict_http(
         endpoint,
         ssl=True,
         ssl_context_factory=gssl.create_default_context,
-    ) as triton_client:  # pylint: disable=unexpected-keyword-arg
+    ) as triton_client:
         # Define the http inputs
         inputs = [httpclient.InferInput(*params) for params in model_inputs]
 
@@ -129,10 +129,10 @@ async def triton_predict_http_async(
     data_to_predict,
     model_version="",
 ):
-    async with aio_httpclient.InferenceServerClient(  # pylint: disable=unexpected-keyword-arg
+    async with aio_httpclient.InferenceServerClient(
         endpoint,
         ssl=True,
-        ssl_context=ssl.create_default_context(),
+        ssl_context_factory=ssl.create_default_context,
     ) as triton_client:
         # Define the http inputs
         inputs = [aio_httpclient.InferInput(*params) for params in model_inputs]

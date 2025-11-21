@@ -26,6 +26,7 @@ from tqdm import tqdm
 from urllib3.util import Retry
 from websockets.sync.client import connect
 
+from predibase._errors import PredibaseClientError, PredibaseServerError
 from predibase.pql.adapter import TimeoutHTTPAdapter
 from predibase.pql.utils import get_results_df, retry
 from predibase.resource.llm.util import print_events
@@ -66,19 +67,6 @@ def warn_outdated_sdk(fn, *args, **kwargs):
                 )
 
     return resp
-
-
-class PQLException(RuntimeError):
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
-
-
-class ServerResponseError(RuntimeError):
-    def __init__(self, message, code):
-        super().__init__(message)
-        self.message = message
-        self.code = code
 
 
 @dataclass
@@ -296,14 +284,10 @@ class Session:
                 "url": "https://s3.amazonaws.com/2021-05-27T18:50:13.000Z/2021-05-27T18:50:13.000Z.log?AWSAccessKeyId=AKIAJ2...", # noqa E501
             }]
         """
-        try:
-            resp = self.get_json(
-                f"/models/version/{model_id}/logs",
-            )
-
-            return resp
-        except ServerResponseError as e:
-            raise e
+        resp = self.get_json(
+            f"/models/version/{model_id}/logs",
+        )
+        return resp
 
     def get_model_logs(
         self,
@@ -846,9 +830,8 @@ def _to_json(resp: requests.Response) -> JSONType:
             # Processing in progress
             return {}
         trace_id = get_trace_id(resp)
-        raise ServerResponseError(
+        raise PredibaseServerError(
             f"Error {resp.status_code}: {_get_error(resp)}. Trace ID: {trace_id}",
-            resp.status_code,
         )
     if resp.content:
         try:
@@ -857,8 +840,7 @@ def _to_json(resp: requests.Response) -> JSONType:
                 if type(data) is dict:
                     error_message = data.get("errorMessage")
                     if error_message:
-                        # TODO: very strange to call these PQLExceptions.
-                        raise PQLException(error_message)
+                        raise PredibaseClientError(error_message)
             return data
         except requests.exceptions.JSONDecodeError:
             log_error(f"Failed to decode payload as JSON. Payload text: \n{resp.text}\n")

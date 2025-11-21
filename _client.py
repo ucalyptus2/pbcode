@@ -11,7 +11,14 @@ import websockets
 from urllib3 import Retry
 from websockets.sync.client import connect
 
-from predibase._errors import PredibaseError, PredibaseResponseError, PredibaseServerError, warn_outdated_sdk
+from predibase._errors import (
+    PredibaseClientError,
+    PredibaseError,
+    PredibaseResponseError,
+    PredibaseServerError,
+    PredibaseTimeoutError,
+    warn_outdated_sdk,
+)
 from predibase.beta import Beta
 from predibase.pql import get_session, start_session
 from predibase.pql.adapter import TimeoutHTTPAdapter
@@ -201,7 +208,7 @@ class Predibase:
                 if conn is not None:
                     conn.close()
 
-        raise RuntimeError("TODO populate")
+        raise PredibaseTimeoutError("Timed out waiting for websocket connection.")
 
 
 def _to_json(resp: requests.Response) -> dict:
@@ -210,7 +217,7 @@ def _to_json(resp: requests.Response) -> dict:
 
     if 400 <= resp.status_code < 500:
         payload = payload_json(resp)
-        raise RuntimeError(
+        raise PredibaseClientError(
             f"Bad request. Response status code {resp.status_code}. Error: " f"{payload.get('error', 'Unknown')}",
         )
 

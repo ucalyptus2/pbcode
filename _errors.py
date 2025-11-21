@@ -27,6 +27,16 @@ class PredibaseServerError(PredibaseError):
         super().__init__(message)
 
 
+class PredibaseClientError(PredibaseError):
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class PredibaseTimeoutError(PredibaseError):
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
 class FinetuningError(PredibaseError):
     def __init__(self, message: str):
         super().__init__(message)
@@ -41,7 +51,7 @@ def warn_outdated_sdk(fn, *args, **kwargs):
     server_release_version = resp.headers.get("X-Predibase-Release-Version", None)
     if server_release_version is not None and not is_ci:
         if server_release_version == "" or server_release_version == "staging":
-            if not __version__.startswith("0.1.1+dev") and not __version__.startswith("v2999"):
+            if not __version__.startswith("0.1.1+dev") and not __version__.startswith("2999"):
                 warn(
                     "Using a post-release / prod version of the SDK in staging can lead to unexpected behavior. "
                     "Consider installing from latest master."
