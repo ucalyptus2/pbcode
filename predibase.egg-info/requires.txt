@@ -1,0 +1,14 @@
+pandas
+requests
+semantic-version
+websockets
+python-dateutil
+decorator
+progress-table
+tqdm
+urllib3
+gevent
+numpy
+tritonclient[all]
+grpcio
+grpcio-tools
